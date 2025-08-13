@@ -21,39 +21,52 @@ def load_model():
     global model, tokenizer
     
     if model is None:
-        print("Loading model from Hugging Face...")
-        
-        # bitsandbytes 호환성 설정
-        if not hasattr(bnb.nn.Linear4bit, "ipex_linear_is_set"):
-            bnb.nn.Linear4bit.ipex_linear_is_set = False
-        
-        # 모델 다운로드 및 로드
-        model_path = hf_hub_download(
-            repo_id="thegreatgame/exaone-accounting-complete",
-            filename="model_complete.pt",
-            token=HF_TOKEN
-        )
-        
-        # GPU 사용 가능 여부 확인
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-        
-        model = torch.load(
-            model_path,
-            map_location=device,
-            weights_only=False
-        )
-        
-        # 토크나이저 로드
-        tokenizer = AutoTokenizer.from_pretrained(
-            "LGAI-EXAONE/EXAONE-4.0-32B",
-            trust_remote_code=True,
-            token=HF_TOKEN
-        )
-        
-        # 모델을 평가 모드로 설정
-        model.eval()
-        
-        print("Model loaded successfully!")
+        try:
+            print("Loading model from Hugging Face...")
+            print(f"GPU Available: {torch.cuda.is_available()}")
+            if torch.cuda.is_available():
+                print(f"GPU Name: {torch.cuda.get_device_name(0)}")
+                print(f"GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.2f} GB")
+            
+            # bitsandbytes 호환성 설정
+            if not hasattr(bnb.nn.Linear4bit, "ipex_linear_is_set"):
+                bnb.nn.Linear4bit.ipex_linear_is_set = False
+            
+            # 모델 다운로드 및 로드
+            model_path = hf_hub_download(
+                repo_id="thegreatgame/exaone-accounting-complete",
+                filename="model_complete.pt",
+                token=HF_TOKEN
+            )
+            
+            # GPU 사용 가능 여부 확인
+            device = "cuda" if torch.cuda.is_available() else "cpu"
+            print(f"Loading model to device: {device}")
+            
+            # 메모리 효율적인 로딩
+            torch.cuda.empty_cache()
+            model = torch.load(
+                model_path,
+                map_location=device,
+                weights_only=False
+            )
+            
+            # 토크나이저 로드
+            tokenizer = AutoTokenizer.from_pretrained(
+                "LGAI-EXAONE/EXAONE-4.0-32B",
+                trust_remote_code=True,
+                token=HF_TOKEN
+            )
+            
+            # 모델을 평가 모드로 설정
+            model.eval()
+            
+            print("Model loaded successfully!")
+            if torch.cuda.is_available():
+                print(f"GPU Memory After Loading: {torch.cuda.memory_allocated() / 1024**3:.2f} GB")
+        except Exception as e:
+            print(f"Error loading model: {str(e)}")
+            raise
     
     return model, tokenizer
 
@@ -167,9 +180,16 @@ def handler(event):
 
 # RunPod 서버리스 엔트리포인트
 if __name__ == "__main__":
-    # 모델 미리 로드 (콜드 스타트 시간 단축)
-    print("Preloading model...")
-    load_model()
-    
-    # RunPod 핸들러 시작
-    runpod.serverless.start({"handler": handler})
+    try:
+        # 모델 미리 로드 (콜드 스타트 시간 단축)
+        print("Preloading model...")
+        load_model()
+        print("Model preloading completed successfully")
+        
+        # RunPod 핸들러 시작
+        print("Starting RunPod handler...")
+        runpod.serverless.start({"handler": handler})
+    except Exception as e:
+        print(f"Fatal error during initialization: {str(e)}")
+        import sys
+        sys.exit(1)

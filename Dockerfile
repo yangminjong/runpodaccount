@@ -28,5 +28,9 @@ ENV CUDA_VISIBLE_DEVICES=0
 RUN mkdir -p /workspace/model_cache
 ENV HF_HOME=/workspace/model_cache
 
+# 헬스체크 추가
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
+  CMD python -c "import torch; print('Health check passed')" || exit 1
+
 # RunPod 핸들러 실행
 CMD ["python", "-u", "handler.py"]
