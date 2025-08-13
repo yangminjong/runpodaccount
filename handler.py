@@ -1,12 +1,23 @@
 # -*- coding: utf-8 -*-
+import sys
+import os
+import shutil
+
+# EXAONE4 모듈 모킹 (파인튜닝된 모델 로딩을 위해)
+try:
+    from unittest.mock import MagicMock
+    sys.modules['transformers.models.exaone4'] = MagicMock()
+    sys.modules['transformers.models.exaone4.modeling_exaone4'] = MagicMock()
+    print("EXAONE4 modules mocked for fine-tuned model loading")
+except Exception as e:
+    print(f"Warning: Could not mock EXAONE4 modules: {e}")
+
 import runpod
 import torch
 from transformers import AutoTokenizer
 from huggingface_hub import hf_hub_download
 import bitsandbytes as bnb
 from bitsandbytes.nn import Linear4bit
-import os
-import shutil
 
 # 환경 변수에서 HF 토큰 가져오기 (필수)
 HF_TOKEN = os.environ.get("HF_TOKEN")
@@ -109,11 +120,15 @@ def load_model():
             
             # 메모리 효율적인 로딩
             torch.cuda.empty_cache()
+            
+            # 파인튩닝된 모델 로드 (.pt 파일)
+            print(f"Loading fine-tuned model from: {model_path}")
             model = torch.load(
                 model_path,
                 map_location=device,
                 weights_only=False
             )
+            print("Fine-tuned model loaded successfully!")
             
             # 토크나이저 로드
             tokenizer = AutoTokenizer.from_pretrained(
