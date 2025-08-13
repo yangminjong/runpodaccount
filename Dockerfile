@@ -24,9 +24,9 @@ COPY handler.py .
 ENV PYTHONUNBUFFERED=1
 ENV CUDA_VISIBLE_DEVICES=0
 
-# 모델 캐시 디렉토리 생성
-RUN mkdir -p /workspace/model_cache
-ENV HF_HOME=/workspace/model_cache
+# forelink 볼륨 사용을 위한 설정
+# HF_HOME은 RunPod 콘솔에서 설정됨
+# ENV HF_HOME=/mnt/forelink-volume/hf_cache
 
 # 헬스체크 추가
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \

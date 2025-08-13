@@ -6,11 +6,40 @@ from huggingface_hub import hf_hub_download
 import bitsandbytes as bnb
 from bitsandbytes.nn import Linear4bit
 import os
+import shutil
 
 # 환경 변수에서 HF 토큰 가져오기 (필수)
 HF_TOKEN = os.environ.get("HF_TOKEN")
 if not HF_TOKEN:
     raise ValueError("HF_TOKEN environment variable is required but not set")
+
+# 볼륨 체크 및 설정
+print("\n=== Volume Check ===")
+print(f"HF_HOME from env: {os.environ.get('HF_HOME', 'Not set')}")
+
+# forelink2 볼륨이 제대로 마운트되었는지 확인
+if os.path.exists("/mnt/forelink-volume"):
+    stat = shutil.disk_usage("/mnt/forelink-volume")
+    gb_free = stat.free / (1024**3)
+    gb_total = stat.total / (1024**3)
+    print(f"✅ Forelink volume found: {gb_free:.2f} GB free / {gb_total:.2f} GB total")
+    
+    # HF_HOME이 설정되어 있지 않으면 설정
+    if not os.environ.get('HF_HOME'):
+        os.environ['HF_HOME'] = "/mnt/forelink-volume/hf_cache"
+        print(f"Setting HF_HOME to: {os.environ['HF_HOME']}")
+else:
+    print("❌ ERROR: /mnt/forelink-volume not found!")
+    print("Available mounts:")
+    os.system("df -h")
+    print("\nMounted volumes:")
+    os.system("mount | grep mnt")
+    raise ValueError("Forelink volume not properly mounted!")
+
+# 캐시 디렉토리 확인 및 생성
+CACHE_DIR = os.environ.get('HF_HOME', '/mnt/forelink-volume/hf_cache')
+os.makedirs(CACHE_DIR, exist_ok=True)
+print(f"Cache directory: {CACHE_DIR}")
 
 # 전역 변수로 모델과 토크나이저 저장
 model = None
@@ -22,7 +51,16 @@ def load_model():
     
     if model is None:
         try:
-            print("Loading model from Hugging Face...")
+            print("\n=== Model Loading ===")
+            
+            # 볼륨 공간 재확인
+            if os.path.exists("/mnt/forelink-volume"):
+                stat = shutil.disk_usage("/mnt/forelink-volume")
+                gb_free = stat.free / (1024**3)
+                print(f"Forelink volume free space: {gb_free:.2f} GB")
+                if gb_free < 20:
+                    print(f"⚠️ WARNING: Only {gb_free:.2f} GB free, need 20GB for model")
+            
             print(f"GPU Available: {torch.cuda.is_available()}")
             if torch.cuda.is_available():
                 print(f"GPU Name: {torch.cuda.get_device_name(0)}")
@@ -32,12 +70,38 @@ def load_model():
             if not hasattr(bnb.nn.Linear4bit, "ipex_linear_is_set"):
                 bnb.nn.Linear4bit.ipex_linear_is_set = False
             
-            # 모델 다운로드 및 로드
-            model_path = hf_hub_download(
-                repo_id="thegreatgame/exaone-accounting-complete",
-                filename="model_complete.pt",
-                token=HF_TOKEN
-            )
+            # 모델 파일 경로
+            model_filename = "model_complete.pt"
+            local_model_path = os.path.join(CACHE_DIR, model_filename)
+            
+            # 이미 다운로드된 모델이 있는지 확인
+            if os.path.exists(local_model_path):
+                file_size_gb = os.path.getsize(local_model_path) / (1024**3)
+                print(f"Found existing model: {local_model_path} ({file_size_gb:.2f} GB)")
+                if file_size_gb > 10:  # 10GB 이상이면 유효한 모델로 간주
+                    model_path = local_model_path
+                else:
+                    print("Model file seems incomplete, re-downloading...")
+                    os.remove(local_model_path)
+                    model_path = hf_hub_download(
+                        repo_id="thegreatgame/exaone-accounting-complete",
+                        filename=model_filename,
+                        token=HF_TOKEN,
+                        cache_dir=CACHE_DIR
+                    )
+            else:
+                print(f"Downloading model to forelink volume: {CACHE_DIR}")
+                print("First download will take time (~18.6 GB)...")
+                
+                # 모델 다운로드
+                model_path = hf_hub_download(
+                    repo_id="thegreatgame/exaone-accounting-complete",
+                    filename=model_filename,
+                    token=HF_TOKEN,
+                    cache_dir=CACHE_DIR
+                )
+                
+                print(f"Model downloaded to: {model_path}")
             
             # GPU 사용 가능 여부 확인
             device = "cuda" if torch.cuda.is_available() else "cpu"
