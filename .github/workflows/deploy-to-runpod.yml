@@ -1,0 +1,87 @@
+name: Deploy to RunPod
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  REGISTRY: registry.runpod.io
+  IMAGE_NAME: ${{ secrets.RUNPOD_REGISTRY_USERNAME }}/runpodaccount
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to RunPod Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ secrets.RUNPOD_REGISTRY_USERNAME }}
+        password: ${{ secrets.RUNPOD_API_KEY }}
+
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        build-args: |
+          BUILDKIT_INLINE_CACHE=1
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Deploy to RunPod Serverless
+      env:
+        RUNPOD_API_KEY: ${{ secrets.RUNPOD_API_KEY }}
+      run: |
+        # RunPod API를 사용하여 새 버전 배포
+        curl -X POST "https://api.runpod.io/v2/serverless/endpoints/${{ secrets.RUNPOD_ENDPOINT_ID }}/update" \
+          -H "Authorization: Bearer ${RUNPOD_API_KEY}" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "dockerImage": "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest",
+            "gpuType": "AMPERE_24",
+            "minWorkers": 0,
+            "maxWorkers": 3,
+            "env": {
+              "HF_TOKEN": "${{ secrets.HF_TOKEN }}"
+            }
+          }'
+        
+        echo "✅ Deployment triggered successfully!"
+
+    - name: Check deployment status
+      env:
+        RUNPOD_API_KEY: ${{ secrets.RUNPOD_API_KEY }}
+      run: |
+        sleep 10
+        curl -X GET "https://api.runpod.io/v2/serverless/endpoints/${{ secrets.RUNPOD_ENDPOINT_ID }}" \
+          -H "Authorization: Bearer ${RUNPOD_API_KEY}" | jq '.status'
