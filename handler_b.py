@@ -28,29 +28,27 @@ if not HF_TOKEN:
 print("\n=== Volume Check ===")
 print(f"HF_HOME from env: {os.environ.get('HF_HOME', 'Not set')}")
 
-# RunPod Serverless에서는 Network Volume이 /runpod-volume에 마운트됨
-if os.path.exists("/runpod-volume"):
-    stat = shutil.disk_usage("/runpod-volume")
+# forelink2 볼륨이 제대로 마운트되었는지 확인
+if os.path.exists("/mnt/forelink-volume"):
+    stat = shutil.disk_usage("/mnt/forelink-volume")
     gb_free = stat.free / (1024**3)
     gb_total = stat.total / (1024**3)
-    print(f"✅ Network volume found: {gb_free:.2f} GB free / {gb_total:.2f} GB total")
+    print(f"✅ Forelink volume found: {gb_free:.2f} GB free / {gb_total:.2f} GB total")
     
     # HF_HOME이 설정되어 있지 않으면 설정
     if not os.environ.get('HF_HOME'):
-        os.environ['HF_HOME'] = "/runpod-volume/hf_cache"
+        os.environ['HF_HOME'] = "/mnt/forelink-volume/hf_cache"
         print(f"Setting HF_HOME to: {os.environ['HF_HOME']}")
 else:
-    print("❌ ERROR: /runpod-volume not found!")
-    print("Available directories:")
-    os.system("ls -la /")
-    print("\nDisk usage:")
+    print("❌ ERROR: /mnt/forelink-volume not found!")
+    print("Available mounts:")
     os.system("df -h")
     print("\nMounted volumes:")
-    os.system("mount | grep -E 'runpod|volume'")
-    raise ValueError("Network volume not properly mounted!")
+    os.system("mount | grep mnt")
+    raise ValueError("Forelink volume not properly mounted!")
 
 # 캐시 디렉토리 확인 및 생성
-CACHE_DIR = os.environ.get('HF_HOME', '/runpod-volume/hf_cache')
+CACHE_DIR = os.environ.get('HF_HOME', '/mnt/forelink-volume/hf_cache')
 os.makedirs(CACHE_DIR, exist_ok=True)
 print(f"Cache directory: {CACHE_DIR}")
 
@@ -67,10 +65,10 @@ def load_model():
             print("\n=== Model Loading ===")
             
             # 볼륨 공간 재확인
-            if os.path.exists("/runpod-volume"):
-                stat = shutil.disk_usage("/runpod-volume")
+            if os.path.exists("/mnt/forelink-volume"):
+                stat = shutil.disk_usage("/mnt/forelink-volume")
                 gb_free = stat.free / (1024**3)
-                print(f"Network volume free space: {gb_free:.2f} GB")
+                print(f"Forelink volume free space: {gb_free:.2f} GB")
                 if gb_free < 20:
                     print(f"⚠️ WARNING: Only {gb_free:.2f} GB free, need 20GB for model")
             
@@ -103,7 +101,7 @@ def load_model():
                         cache_dir=CACHE_DIR
                     )
             else:
-                print(f"Downloading model to network volume: {CACHE_DIR}")
+                print(f"Downloading model to forelink volume: {CACHE_DIR}")
                 print("First download will take time (~18.6 GB)...")
                 
                 # 모델 다운로드
