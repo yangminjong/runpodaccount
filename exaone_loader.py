@@ -7,7 +7,7 @@ import torch
 import torch.nn as nn
 from transformers import PreTrainedModel, PretrainedConfig
 
-class EXAONE4Config(PretrainedConfig):
+class Exaone4Config(PretrainedConfig):
     model_type = "exaone4"
     
     def __init__(self, **kwargs):
@@ -15,12 +15,12 @@ class EXAONE4Config(PretrainedConfig):
         for key, value in kwargs.items():
             setattr(self, key, value)
 
-class EXAONE4ForCausalLM(PreTrainedModel):
-    config_class = EXAONE4Config
+class Exaone4ForCausalLM(PreTrainedModel):
+    config_class = Exaone4Config
     
     def __init__(self, config=None):
         if config is None:
-            config = EXAONE4Config()
+            config = Exaone4Config()
         super().__init__(config)
         self.model = nn.Module()
         self.lm_head = nn.Module()
@@ -35,12 +35,16 @@ class EXAONE4ForCausalLM(PreTrainedModel):
 exaone4_module = types.ModuleType('transformers.models.exaone4')
 modeling_module = types.ModuleType('transformers.models.exaone4.modeling_exaone4')
 
-# 클래스 할당
-modeling_module.EXAONE4ForCausalLM = EXAONE4ForCausalLM
-modeling_module.EXAONE4Config = EXAONE4Config
+# 클래스 할당 (다양한 이름 형식 지원)
+modeling_module.Exaone4ForCausalLM = Exaone4ForCausalLM
+modeling_module.Exaone4Config = Exaone4Config
+modeling_module.EXAONE4ForCausalLM = Exaone4ForCausalLM  # 대문자 버전도 추가
+modeling_module.EXAONE4Config = Exaone4Config  # 대문자 버전도 추가
 exaone4_module.modeling_exaone4 = modeling_module
-exaone4_module.EXAONE4ForCausalLM = EXAONE4ForCausalLM
-exaone4_module.EXAONE4Config = EXAONE4Config
+exaone4_module.Exaone4ForCausalLM = Exaone4ForCausalLM
+exaone4_module.Exaone4Config = Exaone4Config
+exaone4_module.EXAONE4ForCausalLM = Exaone4ForCausalLM  # 대문자 버전도 추가
+exaone4_module.EXAONE4Config = Exaone4Config  # 대문자 버전도 추가
 
 # 시스템 모듈에 등록
 sys.modules['transformers.models.exaone4'] = exaone4_module
