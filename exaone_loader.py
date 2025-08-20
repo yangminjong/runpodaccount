@@ -7,6 +7,23 @@ import torch
 import torch.nn as nn
 from transformers import PreTrainedModel, PretrainedConfig
 
+# RoPE 유틸리티 모듈 생성
+rope_utils_module = types.ModuleType('transformers.modeling_rope_utils')
+
+# RoPE 관련 함수들 (더미 구현)
+def apply_rotary_pos_emb(*args, **kwargs):
+    return args[0] if args else None
+
+def rotate_half(*args, **kwargs):
+    return args[0] if args else None
+
+# 모듈에 함수 할당
+rope_utils_module.apply_rotary_pos_emb = apply_rotary_pos_emb
+rope_utils_module.rotate_half = rotate_half
+
+# 시스템 모듈에 등록
+sys.modules['transformers.modeling_rope_utils'] = rope_utils_module
+
 class Exaone4Config(PretrainedConfig):
     model_type = "exaone4"
     
