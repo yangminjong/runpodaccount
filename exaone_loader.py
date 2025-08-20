@@ -56,9 +56,22 @@ def apply_rotary_pos_emb(*args, **kwargs):
 def rotate_half(*args, **kwargs):
     return args[0] if args else None
 
+def _compute_llama3_parameters(config, device, seq_len=None, **rope_kwargs):
+    """Compute LLaMA3 RoPE parameters"""
+    # 더미 구현 - 실제 값은 중요하지 않음 (pickle 로딩만 되면 됨)
+    return {
+        'inv_freq': None,
+        'attention_factor': 1.0,
+        'beta_fast': 32,
+        'beta_slow': 1,
+        'factor': 8,
+        'original_max_position_embeddings': 8192,
+    }
+
 # 모듈에 함수 할당
 rope_utils_module.apply_rotary_pos_emb = apply_rotary_pos_emb
 rope_utils_module.rotate_half = rotate_half
+rope_utils_module._compute_llama3_parameters = _compute_llama3_parameters
 
 # 시스템 모듈에 등록
 sys.modules['transformers.modeling_rope_utils'] = rope_utils_module
