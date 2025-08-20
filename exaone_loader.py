@@ -34,7 +34,7 @@ class Exaone4Attention(nn.Module):
         self.o_proj = nn.Linear(1, 1)
     
     def forward(self, *args, **kwargs):
-        raise NotImplementedError("This is a dummy class for pickle loading")
+        return None  # 더미 구현
 
 # MLP 클래스
 class Exaone4MLP(nn.Module):
@@ -45,7 +45,7 @@ class Exaone4MLP(nn.Module):
         self.down_proj = nn.Linear(1, 1)
     
     def forward(self, *args, **kwargs):
-        raise NotImplementedError("This is a dummy class for pickle loading")
+        return None  # 더미 구현
 
 # DecoderLayer 클래스
 class Exaone4DecoderLayer(nn.Module):
@@ -57,7 +57,7 @@ class Exaone4DecoderLayer(nn.Module):
         self.post_attention_layernorm = Exaone4RMSNorm()
     
     def forward(self, *args, **kwargs):
-        raise NotImplementedError("This is a dummy class for pickle loading")
+        return None  # 더미 구현
 
 # RotaryEmbedding 클래스
 class Exaone4RotaryEmbedding(nn.Module):
@@ -65,7 +65,7 @@ class Exaone4RotaryEmbedding(nn.Module):
         super().__init__()
     
     def forward(self, *args, **kwargs):
-        raise NotImplementedError("This is a dummy class for pickle loading")
+        return None  # 더미 구현
 
 class Exaone4Model(PreTrainedModel):
     config_class = Exaone4Config
@@ -79,7 +79,16 @@ class Exaone4Model(PreTrainedModel):
         self.norm = Exaone4RMSNorm()
     
     def forward(self, *args, **kwargs):
-        raise NotImplementedError("This is a dummy class for pickle loading")
+        return None  # 더미 구현
+
+# Tokenizer 관련 클래스들
+class Exaone4Tokenizer:
+    def __init__(self, *args, **kwargs):
+        pass
+
+class Exaone4TokenizerFast:
+    def __init__(self, *args, **kwargs):
+        pass
 
 class Exaone4ForCausalLM(PreTrainedModel):
     config_class = Exaone4Config
@@ -92,14 +101,26 @@ class Exaone4ForCausalLM(PreTrainedModel):
         self.lm_head = nn.Module()
     
     def forward(self, *args, **kwargs):
-        raise NotImplementedError("This is a dummy class for pickle loading")
+        # pickle로 로드된 실제 모델이 이 메서드를 덮어씀
+        return super().forward(*args, **kwargs) if hasattr(super(), 'forward') else None
     
     def generate(self, *args, **kwargs):
-        raise NotImplementedError("This is a dummy class for pickle loading")
+        # PreTrainedModel의 generate 메서드 사용
+        return super().generate(*args, **kwargs)
 
-# 모듈 생성
+# 모듈 생성 - exaone4를 패키지처럼 만들기
 exaone4_module = types.ModuleType('transformers.models.exaone4')
+exaone4_module.__path__ = []  # 패키지로 만들기 위해 __path__ 추가
+exaone4_module.__file__ = 'transformers/models/exaone4/__init__.py'
+
+# 서브모듈들 생성
 modeling_module = types.ModuleType('transformers.models.exaone4.modeling_exaone4')
+configuration_module = types.ModuleType('transformers.models.exaone4.configuration_exaone4')
+tokenization_module = types.ModuleType('transformers.models.exaone4.tokenization_exaone4')
+tokenization_fast_module = types.ModuleType('transformers.models.exaone4.tokenization_exaone4_fast')
+
+# __init__ 모듈도 생성
+init_module = types.ModuleType('transformers.models.exaone4.__init__')
 
 # 클래스 할당 (다양한 이름 형식 지원)
 # 모든 클래스를 modeling_module에 등록
@@ -122,8 +143,29 @@ modeling_module.EXAONE4RotaryEmbedding = Exaone4RotaryEmbedding
 modeling_module.EXAONE4Model = Exaone4Model
 modeling_module.EXAONE4ForCausalLM = Exaone4ForCausalLM
 
+# configuration_module에 Config 클래스 등록
+configuration_module.Exaone4Config = Exaone4Config
+configuration_module.EXAONE4Config = Exaone4Config
+
+# tokenization 모듈에 토크나이저 클래스 등록
+tokenization_module.Exaone4Tokenizer = Exaone4Tokenizer
+tokenization_module.EXAONE4Tokenizer = Exaone4Tokenizer
+tokenization_fast_module.Exaone4TokenizerFast = Exaone4TokenizerFast
+tokenization_fast_module.EXAONE4TokenizerFast = Exaone4TokenizerFast
+
+# init 모듈에 모든 클래스 등록
+init_module.Exaone4Config = Exaone4Config
+init_module.Exaone4Model = Exaone4Model
+init_module.Exaone4ForCausalLM = Exaone4ForCausalLM
+init_module.Exaone4Tokenizer = Exaone4Tokenizer
+init_module.Exaone4TokenizerFast = Exaone4TokenizerFast
+
 # exaone4_module에도 등록
 exaone4_module.modeling_exaone4 = modeling_module
+exaone4_module.configuration_exaone4 = configuration_module
+exaone4_module.tokenization_exaone4 = tokenization_module
+exaone4_module.tokenization_exaone4_fast = tokenization_fast_module
+exaone4_module.__init__ = init_module
 exaone4_module.Exaone4Config = Exaone4Config
 exaone4_module.Exaone4RMSNorm = Exaone4RMSNorm
 exaone4_module.Exaone4Attention = Exaone4Attention
@@ -132,9 +174,15 @@ exaone4_module.Exaone4DecoderLayer = Exaone4DecoderLayer
 exaone4_module.Exaone4RotaryEmbedding = Exaone4RotaryEmbedding
 exaone4_module.Exaone4Model = Exaone4Model
 exaone4_module.Exaone4ForCausalLM = Exaone4ForCausalLM
+exaone4_module.Exaone4Tokenizer = Exaone4Tokenizer
+exaone4_module.Exaone4TokenizerFast = Exaone4TokenizerFast
 
 # 시스템 모듈에 등록
 sys.modules['transformers.models.exaone4'] = exaone4_module
 sys.modules['transformers.models.exaone4.modeling_exaone4'] = modeling_module
+sys.modules['transformers.models.exaone4.configuration_exaone4'] = configuration_module
+sys.modules['transformers.models.exaone4.tokenization_exaone4'] = tokenization_module
+sys.modules['transformers.models.exaone4.tokenization_exaone4_fast'] = tokenization_fast_module
+sys.modules['transformers.models.exaone4.__init__'] = init_module
 
 print("EXAONE4 module loaded with actual classes for pickle compatibility")
