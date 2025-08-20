@@ -3,14 +3,12 @@ import sys
 import os
 import shutil
 
-# EXAONE4 모듈 모킹 (파인튜닝된 모델 로딩을 위해)
+# EXAONE4 실제 클래스 로드 (pickle 호환성을 위해)
 try:
-    from unittest.mock import MagicMock
-    sys.modules['transformers.models.exaone4'] = MagicMock()
-    sys.modules['transformers.models.exaone4.modeling_exaone4'] = MagicMock()
-    print("EXAONE4 modules mocked for fine-tuned model loading")
+    import exaone_loader
+    print("EXAONE4 classes loaded successfully")
 except Exception as e:
-    print(f"Warning: Could not mock EXAONE4 modules: {e}")
+    print(f"Warning: Could not load EXAONE4 classes: {e}")
 
 import runpod
 import torch

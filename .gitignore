@@ -65,3 +65,8 @@ logs/
 # Temporary files
 *.tmp
 *.temp
+
+# Project specific files with sensitive data
+trained.ipynb
+trained.py
+error.txt

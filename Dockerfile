@@ -19,6 +19,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # 애플리케이션 코드 복사
 COPY handler.py .
+COPY exaone_loader.py .
 
 # 환경 변수 설정 (HF_TOKEN은 RunPod 시크릿에서 설정)
 ENV PYTHONUNBUFFERED=1
