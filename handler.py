@@ -3,19 +3,20 @@ import sys
 import os
 import shutil
 
-# EXAONE4 실제 클래스 로드 (pickle 호환성을 위해)
-try:
-    import exaone_loader
-    print("EXAONE4 classes loaded successfully")
-except Exception as e:
-    print(f"Warning: Could not load EXAONE4 classes: {e}")
-
+# 먼저 필요한 라이브러리들을 import
 import runpod
 import torch
 from transformers import AutoTokenizer
 from huggingface_hub import hf_hub_download
 import bitsandbytes as bnb
 from bitsandbytes.nn import Linear4bit
+
+# EXAONE4 실제 클래스 로드 (pickle 호환성을 위해) - 다른 import 후에 실행
+try:
+    import exaone_loader
+    print("EXAONE4 classes loaded successfully")
+except Exception as e:
+    print(f"Warning: Could not load EXAONE4 classes: {e}")
 
 # 환경 변수에서 HF 토큰 가져오기 (필수)
 HF_TOKEN = os.environ.get("HF_TOKEN")

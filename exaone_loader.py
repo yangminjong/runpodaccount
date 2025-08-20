@@ -3,9 +3,48 @@ EXAONE 모델 클래스 정의 - pickle 로딩을 위한 실제 클래스
 """
 import sys
 import types
-import torch
-import torch.nn as nn
-from transformers import PreTrainedModel, PretrainedConfig
+
+try:
+    import torch
+    import torch.nn as nn
+    from transformers import PreTrainedModel, PretrainedConfig
+except ImportError as e:
+    print(f"Warning: Could not import required modules: {e}")
+    # 더미 클래스 생성 (import 실패시에도 작동하도록)
+    class PreTrainedModel:
+        def __init__(self, *args, **kwargs):
+            pass
+        def generate(self, *args, **kwargs):
+            return None
+    
+    class PretrainedConfig:
+        def __init__(self, *args, **kwargs):
+            pass
+    
+    class nn:
+        class Module:
+            def __init__(self, *args, **kwargs):
+                pass
+        class ModuleList:
+            def __init__(self, *args, **kwargs):
+                pass
+        class Linear:
+            def __init__(self, *args, **kwargs):
+                pass
+        class Embedding:
+            def __init__(self, *args, **kwargs):
+                pass
+        class LayerNorm:
+            def __init__(self, *args, **kwargs):
+                pass
+        class Parameter:
+            def __init__(self, *args, **kwargs):
+                pass
+    
+    class torch:
+        @staticmethod
+        def ones(*args, **kwargs):
+            return None
 
 # RoPE 유틸리티 모듈 생성
 rope_utils_module = types.ModuleType('transformers.modeling_rope_utils')
