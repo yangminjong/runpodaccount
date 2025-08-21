@@ -1,9 +1,27 @@
-# RunPod 공식 PyTorch 이미지 사용 (이미 Python과 CUDA 설정됨)
-FROM runpod/pytorch:2.1.0-py3.10-cuda12.1.0-devel-ubuntu22.04
+# NVIDIA 공식 CUDA 이미지 사용 (Python 3.10 포함된 버전)
+FROM nvidia/cuda:12.1.0-cudnn8-devel-ubuntu22.04
 
 # 환경 변수 설정
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=UTC
+ENV LANG=C.UTF-8
+
+# 타임존 설정
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+# Python 3.10 및 필수 패키지 설치 (Ubuntu 22.04 기본 버전)
+RUN apt-get update && apt-get install -y \
+    python3.10 \
+    python3.10-dev \
+    python3-pip \
+    git \
+    wget \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Python 3.10을 기본 python으로 설정
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.10 1
+RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.10 1
 
 # pip 업그레이드
 RUN python3 -m pip install --upgrade pip
