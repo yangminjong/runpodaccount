@@ -1,0 +1,28 @@
+# Core dependencies for EXAONE model
+transformers==4.55.2
+accelerate==1.10.0
+bitsandbytes==0.47.0
+huggingface-hub==0.34.4
+tokenizers==0.21.4
+safetensors==0.6.2
+peft==0.17.0
+
+# PyTorch - will be overridden in Dockerfile with CUDA version
+torch>=2.8.0
+
+# RunPod
+runpod==1.7.3
+
+# Utilities
+numpy==2.0.2
+tqdm==4.67.1
+filelock==3.19.1
+typing-extensions==4.14.1
+packaging==25.0
+pyyaml==6.0.2
+regex==2024.11.6
+requests==2.32.4
+sentencepiece==0.2.1
+
+# For better logging
+psutil==5.9.5

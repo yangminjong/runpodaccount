@@ -1,0 +1,20 @@
+# Ignore files not needed in Docker image
+*.pyc
+__pycache__/
+.git/
+.gitignore
+README.md
+*.md
+.env
+.venv/
+venv/
+env/
+*.ipynb
+.ipynb_checkpoints/
+.DS_Store
+*.log
+*.txt
+!requirements.txt
+코랩환경
+trained.ipynb
+error
