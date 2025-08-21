@@ -1,5 +1,6 @@
-# CUDA 12.4 베이스 이미지 사용 (코랩과 동일한 CUDA 버전)
-FROM nvidia/cuda:12.4.0-cudnn9-runtime-ubuntu22.04
+# CUDA 12.4 베이스 이미지 사용 (코랩과 호환되는 버전)
+# RunPod와 호환되는 공식 이미지 사용
+FROM nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04
 
 # 필수 시스템 패키지 설치
 RUN apt-get update && apt-get install -y \
