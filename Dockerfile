@@ -1,5 +1,5 @@
-# NVIDIA 공식 CUDA 이미지 사용 (Python 3.10 포함된 버전)
-FROM nvidia/cuda:12.1.0-cudnn8-devel-ubuntu22.04
+# NVIDIA 공식 CUDA 이미지 사용 (가장 안정적인 버전)
+FROM nvidia/cuda:12.1.1-cudnn8-runtime-ubuntu22.04
 
 # 환경 변수 설정
 ENV DEBIAN_FRONTEND=noninteractive
