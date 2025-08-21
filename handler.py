@@ -97,16 +97,21 @@ def handler(job):
     """
     global model, tokenizer
     
+    # 디버깅을 위한 로그
+    print(f"Received job: {job}")
+    
     # 모델이 로드되지 않았다면 로드
     if model is None or tokenizer is None:
         load_model()
     
     # 입력 데이터 가져오기
-    job_input = job["input"]
+    job_input = job.get("input", {})
+    print(f"Job input: {job_input}")
     
     # 필수 입력 검증
     question = job_input.get("question")
     if not question:
+        print(f"ERROR: Question not found in input. Available keys: {list(job_input.keys())}")
         return {"error": "Question is required"}
     
     # 선택적 파라미터
