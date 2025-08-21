@@ -2,6 +2,11 @@
 # RunPod와 호환되는 공식 이미지 사용
 FROM nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04
 
+# 타임존 설정 (비대화형)
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
 # 필수 시스템 패키지 설치
 RUN apt-get update && apt-get install -y \
     software-properties-common \
