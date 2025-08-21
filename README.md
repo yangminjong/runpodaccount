@@ -141,5 +141,5 @@ RunPod Serverless는 GPU 사용 시간에 대해서만 과금됩니다:
 - Network Volume에 모델이 캐시되어 있는지 확인
 
 ### 스토리지 부족
-- 80GB Network Volume 중 최소 20GB 여유 공간 필요
+- 80GB Network Volume 중 최소 20GB 여유 공간 필 요
 - 불필요한 캐시 파일 정리: `rm -rf /runpod-volume/hf_cache/hub/*`
