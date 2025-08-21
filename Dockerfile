@@ -1,32 +1,9 @@
-# CUDA 12.4 베이스 이미지 사용 (코랩과 호환되는 버전)
-# RunPod와 호환되는 공식 이미지 사용
-FROM nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04
+# RunPod 공식 PyTorch 이미지 사용 (이미 Python과 CUDA 설정됨)
+FROM runpod/pytorch:2.1.0-py3.10-cuda12.1.0-devel-ubuntu22.04
 
-# 타임존 설정 (비대화형)
+# 환경 변수 설정
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=UTC
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-
-# 필수 시스템 패키지 설치
-RUN apt-get update && apt-get install -y \
-    software-properties-common \
-    && add-apt-repository ppa:deadsnakes/ppa -y \
-    && apt-get update && apt-get install -y \
-    python3.12 \
-    python3.12-dev \
-    python3.12-venv \
-    python3-pip \
-    git \
-    wget \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
-# Python 3.12를 기본 python3로 설정
-RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.12 1
-
-# pip 설치 (Python 3.12용)
-RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.12
 
 # pip 업그레이드
 RUN python3 -m pip install --upgrade pip
