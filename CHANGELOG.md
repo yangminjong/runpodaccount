@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.2] - 2025-08-22
+
+### Fixed
+- Model generation parameters (`do_sample=True` for temperature/top_p)
+- Explicit GPU memory management and device handling
+- Added detailed GPU information logging
+- Improved inference debugging with status messages
+
+## [1.1.1] - 2025-08-22
+
+### Added
+- Debugging logs for input validation
+- Test scripts for API troubleshooting
+
 ## [1.1.0] - 2025-08-21
 
 ### Added
