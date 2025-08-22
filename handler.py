@@ -217,5 +217,15 @@ def handler(job):
         }
 
 # RunPod serverless 실행
+print("Loading RunPod handler module...")
+
+# 모델 사전 로드 (선택사항 - 콜드 스타트 방지)
+try:
+    print("Pre-loading model for faster inference...")
+    load_model()
+except Exception as e:
+    print(f"Warning: Could not pre-load model: {e}")
+
 if __name__ == "__main__":
-    runpod.serverless.start({"handler": handler})
+    print("Starting RunPod serverless worker...")
+    runpod.serverless.start(handler)
