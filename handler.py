@@ -73,11 +73,23 @@ def load_model():
         cache_dir=hf_home
     )
     
+    # GPU 사용 가능 확인
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"Using device: {device}")
+    if device == "cuda":
+        print(f"GPU: {torch.cuda.get_device_name(0)}")
+        print(f"GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.2f} GB")
+    
     model = torch.load(
         model_path,
-        map_location="cuda" if torch.cuda.is_available() else "cpu",
+        map_location=device,
         weights_only=False
     )
+    
+    # 모델을 명시적으로 GPU로 이동
+    if device == "cuda":
+        model = model.cuda()
+        print("Model moved to GPU")
     
     model.eval()  # 추론 모드로 설정
     print("Model loaded successfully!")
@@ -156,17 +168,32 @@ def handler(job):
             inputs = {k: v.cuda() for k, v in inputs.items()}
         
         # 추론 실행
+        print(f"Starting inference with max_new_tokens={max_new_tokens}")
         with torch.no_grad():
-            outputs = model.generate(
-                input_ids=inputs["input_ids"],
-                attention_mask=inputs["attention_mask"],
-                max_new_tokens=max_new_tokens,
-                temperature=temperature,
-                top_p=top_p,
-                use_cache=True,
-                pad_token_id=tokenizer.pad_token_id,
-                eos_token_id=tokenizer.eos_token_id
-            )
+            # temperature와 top_p를 사용하려면 do_sample=True 필요
+            if temperature != 1.0 or top_p != 1.0:
+                outputs = model.generate(
+                    input_ids=inputs["input_ids"],
+                    attention_mask=inputs["attention_mask"],
+                    max_new_tokens=max_new_tokens,
+                    do_sample=True,
+                    temperature=temperature,
+                    top_p=top_p,
+                    use_cache=True,
+                    pad_token_id=tokenizer.pad_token_id,
+                    eos_token_id=tokenizer.eos_token_id
+                )
+            else:
+                # 기본 생성 (더 빠름)
+                outputs = model.generate(
+                    input_ids=inputs["input_ids"],
+                    attention_mask=inputs["attention_mask"],
+                    max_new_tokens=max_new_tokens,
+                    use_cache=True,
+                    pad_token_id=tokenizer.pad_token_id,
+                    eos_token_id=tokenizer.eos_token_id
+                )
+        print("Inference completed")
         
         # 디코딩
         response = tokenizer.batch_decode(outputs, skip_special_tokens=True)[0]
