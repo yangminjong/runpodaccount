@@ -228,4 +228,4 @@ except Exception as e:
 
 if __name__ == "__main__":
     print("Starting RunPod serverless worker...")
-    runpod.serverless.start(handler)
+    runpod.serverless.start({"handler": handler})
